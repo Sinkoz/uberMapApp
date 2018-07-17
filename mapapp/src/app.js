@@ -10,6 +10,7 @@ import {
 import {tooltipStyle} from './style';
 import 'whatwg-fetch';
 import DropdownTreeSelect from 'react-dropdown-tree-select';
+import {COLORS} from './colors';
 
 const MAPBOX_STYLE = 'mapbox://styles/mapbox/dark-v9';
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2lua296IiwiYSI6ImNqaTUyZWY3MTBjY3MzcW1rM2hqYjRkbHoifQ.DqK60GCeJJCrZg2s6t8FTw'  // eslint-disable-line
@@ -53,6 +54,7 @@ export default class App extends Component {
       readings: [],
       filters: []
     };
+    this.pollInterval = null;
     this._resize = this._resize.bind(this);
     this._getTreeStruct();
   }
@@ -65,18 +67,23 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    this._getData();
     this._getTreeStruct();
+    if (!this.pollInterval){
+	this.pollInterval = setInterval(this._getData.bind(this), 10000);
+    }
     window.addEventListener('resize', this._resize);
     this._resize();
   }
 
   componentWillUnmount() {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+    this.pollInterval = null;
     window.removeEventListener('resize', this._resize);
   }
 
   _updateLayerSettings(settings) {
     this.setState({settings});
+    this._getData();
   }
 
   _onHover({x, y, object}) {
@@ -108,17 +115,21 @@ export default class App extends Component {
 		var childIndex = indices[1];
 		newData[index].children[childIndex].checked = !newData[index].children[childIndex].checked;
 	}
-	this._filterData();
+	this._getData();
   }
 
   _filterData(){
     const data = this.state.readings;
     const filters = this.state.filters;
+    var dict = this._filterMapper(filters, this.state.treedata);
     this.setState({ status: 'LOADED' });
     const points = data.reduce((accu, curr) => {
       for (var i=0; i<filters.length; i++){
-	if (filters[i]._depth ==0){
+	if (filters[i]._depth == 0){
 	  if (curr.class == filters[i].value){
+		var key = curr.class + '/' + curr.field;
+		var colorIndex = dict[key] % COLORS.length;
+		curr.color = COLORS[colorIndex];
 		accu.push(curr);
 	  }
 	}
@@ -127,12 +138,17 @@ export default class App extends Component {
 	  var parentLabel = this.state.treedata[parentIndex].label;
 	  var childLabel = filters[i].value; 		
 	  if (curr.class == parentLabel && curr.field == childLabel){
+	    var key = curr.class + '/' + curr.field;
+	    var colorIndex = dict[key] % COLORS.length;
+	    curr.color = COLORS[colorIndex];
 	    accu.push(curr);
 	  }
 	}
       }
       return accu;
     }, []);
+    
+
     this.setState({
 	points,
 	status: 'READY'
@@ -152,7 +168,6 @@ export default class App extends Component {
 		if(!res.success) this.setState({ error: res.error});
 		else {
 			var myObj = res.data;
-			this.setState({ status: 'LOADED' });
 			const readings = myObj.reduce((accu, curr) => {
 				var keys = Object.keys(curr.readings[0]);
 				for (var i=0; i<keys.length;++i){
@@ -161,7 +176,8 @@ export default class App extends Component {
 							position: this._geocode(curr._id.location),
 							value: this._normalizer(keys[i],curr.readings[0][keys[i]]),
 							class: curr._id.CSIGclass,
-							field: keys[i]	
+							field: keys[i],
+							color: []
 						});
 					}
 				};
@@ -226,6 +242,32 @@ export default class App extends Component {
 
 	}
   }
+
+  _filterMapper(filters, treedata){
+    var mappedFilter = {};
+    
+    for (var i = 0, counter = 0; i < filters.length; i++){
+	if (filters[i]._depth == 0){
+	  var index = Number(filters[i].path);
+	  var parent = treedata[index];
+          var parentLabel = parent.value;
+	  for (var j = 0; j < parent.children.length; j++){
+	    var key = parentLabel + '/' + parent.children[j].value;
+	    mappedFilter[key] = counter;
+	    counter++;
+	  }
+	} else{
+	  var parentIndex = Number(filters[i]._parent);
+	  var parentLabel = treedata[parentIndex].value;
+	  var key = parentLabel + '/' + filters[i].value
+	  mappedFilter[key] = counter;
+	  counter++;
+        }
+    }
+    return mappedFilter;
+
+  }
+
 
   render() {
     return (

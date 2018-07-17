@@ -83,10 +83,12 @@ router.post('/efmschema', (req,res) => {
   treestruct.label = data.CSIGclass;
   treestruct.value = data.CSIGclass;
   for (var i=0; i<data.field.length; i++){
-    var node = TreeNode();
-    node.label = data.field[i].label;
-    node.value = data.field[i].name;
-    treestruct.children.push(node);
+    if(data.field[i].name != "ts"){
+      var node = TreeNode();
+      node.label = data.field[i].label;
+      node.value = data.field[i].name;
+      treestruct.children.push(node);
+    }
   }
 
   EFMSchema.exists(data, function(message,status){
