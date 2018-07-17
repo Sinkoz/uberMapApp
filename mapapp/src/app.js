@@ -66,18 +66,17 @@ export default class App extends Component {
 
   componentDidMount() {
     this._getData();
+    this._getTreeStruct();
     window.addEventListener('resize', this._resize);
     this._resize();
   }
 
   componentWillUnmount() {
-    this._getTreeStruct();
     window.removeEventListener('resize', this._resize);
   }
 
   _updateLayerSettings(settings) {
     this.setState({settings});
-    this._getData();
   }
 
   _onHover({x, y, object}) {
@@ -93,6 +92,7 @@ export default class App extends Component {
 
   _onChange(currentNode,selectedNodes){
 	const newData = this.state.treedata;
+	this.setState({ filters: selectedNodes });
 	if (currentNode._depth == 0){
 		var index = Number(currentNode.path);
 		var parent = newData[index];
@@ -108,32 +108,36 @@ export default class App extends Component {
 		var childIndex = indices[1];
 		newData[index].children[childIndex].checked = !newData[index].children[childIndex].checked;
 	}
-	const filters = selectedNodes;
-	this.setState({filters});
-	console.log(this.state.filters);
+	this._filterData();
   }
-/*
+
   _filterData(){
     const data = this.state.readings;
     const filters = this.state.filters;
+    this.setState({ status: 'LOADED' });
     const points = data.reduce((accu, curr) => {
       for (var i=0; i<filters.length; i++){
-	if (filters[i].depth ==0){
-	  if (curr.class == filters[i].label){
+	if (filters[i]._depth ==0){
+	  if (curr.class == filters[i].value){
 		accu.push(curr);
 	  }
 	}
 	else{
 	  var parentIndex = Number(filters[i]._parent);
 	  var parentLabel = this.state.treedata[parentIndex].label;
-	  		
-
+	  var childLabel = filters[i].value; 		
+	  if (curr.class == parentLabel && curr.field == childLabel){
+	    accu.push(curr);
+	  }
 	}
       }
-
-    }
+      return accu;
+    }, []);
+    this.setState({
+	points,
+	status: 'READY'
+    });
   }
-*/
 
   _onNodeToggle(currentNode){
 	let newData = this.state.treedata;
@@ -167,6 +171,7 @@ export default class App extends Component {
 				readings,
 				status: 'READY'
 			});
+			this._filterData();
 		}
 	});
   }
@@ -199,13 +204,13 @@ export default class App extends Component {
 
   _geocode(location){
 	switch(location){
-		case "sydney":
+		case "Sydney":
 			return [151.2093, -33.8688]
-		case "japan":
+		case "Japan":
 			return [138.2529,36.2048]
-		case "singapore":
+		case "Singapore":
 			return [103.8198,1.3521]
-		case "toronto":
+		case "Toronto":
 			return [-79.3832,43.6532]
 	}
   }

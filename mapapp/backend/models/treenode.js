@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 
 const TreeNode = new Schema({
   "label" : String,
+  "value" : String,
   "_id" : false
 });
 

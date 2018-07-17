@@ -6,6 +6,7 @@ const Schema = mongoose.Schema;
 
 const TreeStruct = new Schema({
   "label" : { type: String, unique: true, dropDups: true},
+  "value" : String,
   "children" : [TreeNode.schema] 
 });
 

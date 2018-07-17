@@ -81,9 +81,11 @@ router.post('/efmschema', (req,res) => {
   
   var treestruct = TreeStruct();
   treestruct.label = data.CSIGclass;
+  treestruct.value = data.CSIGclass;
   for (var i=0; i<data.field.length; i++){
     var node = TreeNode();
     node.label = data.field[i].label;
+    node.value = data.field[i].name;
     treestruct.children.push(node);
   }
 
