@@ -6,8 +6,6 @@ import bodyParser from 'body-parser';
 import logger from 'morgan';
 import mongoose from 'mongoose';
 import { getSecret } from './secrets';
-import Data from './models/schema';
-import DataPoint from './models/datapoint';
 import EFMSchema from './models/efmschema.js';
 import Readings from './models/readings.js';
 import TreeStruct from './models/treestruct.js';

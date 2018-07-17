@@ -90,35 +90,6 @@ export default class App extends Component {
       height: window.innerHeight
     });
   }
-/*
-  _processData() {
-    fetch('http://localhost:3001/api/datapoints/')
-        .then(data => data.json())
-        .then((res) => {
-                if (!res.success) this.setState({ error : res.error });
-                else
-    { 
-      var myObj = res.data;
-      delete myObj._id;
-      this.setState({status: 'LOADED'}); 
-      const readings = myObj.reduce((accu, curr) => {
-        if (this.state.settings[curr.category]) {
-        accu.push({ 
-          position: [Number(curr.longitude), Number(curr.latitude)],
-          value: Number(curr.value),
-          category: curr.category
-        });
-        }
-        return accu;
-      }, []);
-      this.setState({
-        readings, 
-        status: 'READY'
-      });
-    }
-  });   
-  }
-*/
 
   _onChange(currentNode,selectedNodes){
 	const newData = this.state.treedata;
