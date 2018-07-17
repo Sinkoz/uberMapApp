@@ -12,7 +12,6 @@ module.exports = {
       test: /\.js$/,
       loader: 'buble-loader',
       include: [resolve('.')],
-      exclude: [/node_modules/],
       options: {
         objectAssign: 'Object.assign'
       }

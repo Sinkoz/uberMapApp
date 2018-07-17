@@ -10,6 +10,8 @@ import Data from './models/schema';
 import DataPoint from './models/datapoint';
 import EFMSchema from './models/efmschema.js';
 import Readings from './models/readings.js';
+import TreeStruct from './models/treestruct.js';
+import TreeNode from './models/treenode.js';
 
 // and create our instances
 const app = express();
@@ -54,89 +56,14 @@ router.get('/', (req, res) => {
   res.json({ message: 'Hello, World!' });
 });
 
-
-router.get('/data', (req, res) => {
-  Data.find((err, dataObj) => {
-    if (err) return res.json({ success: false, error: err });
-    return res.json({ success: true, data: dataObj });
-  });
-});
-
-router.post('/data', (req, res) => {
-  const data = new Data();
-  // body parser lets us use the req.body
-  const { pickup_datetime,
-  dropoff_datetime,
-  passenger_count,
-  trip_distance,
-  pickup_longitude,
-  pickup_latitude,
-  dropoff_longitude,
-  dropoff_latitude,
-  fare_amount,
-  tip_amount,
-  total_amount,
- } = req.body;
-  //if (!author || !text) {
-    // we should throw an error. we can do this check on the front end
-  //  return res.json({
-  //    success: false,
-  //    error: 'You must provide an author and comment'
-  //  });
-  //}
-  data.pickup_datetime = pickup_datetime;
-  data.dropoff_datetime = dropoff_datetime;
-  data.passenger_count = passenger_count;
-  data.trip_distance = trip_distance;
-  data.pickup_longitude = pickup_longitude;
-  data.pickup_latitude = pickup_latitude;
-  data.dropoff_longitude = dropoff_longitude;
-  data.pickup_latitude = pickup_latitude;
-  data.fare_amount = fare_amount;
-  data.tip_amount = tip_amount;
-  data.total_amount = total_amount;
-  data.save(err => {
-    if (err) return res.json({ success: false, error: err });
-    return res.json({ success: true });
-  });
-});
-
-router.get('/datapoints', (req, res) => {
-  DataPoint.find((err, dataObj) => {
-    if (err) return res.json({ success: false, error:err});
-    return res.json({ success: true, data: dataObj });
-  });
-});
-
-router.post('/datapoints', (req,res) => {
-   const data = new DataPoint();
-   const { longitude,
-   latitude,
-   value, 
-   category,
-   percentage,
-   location
-  } = req.body;
-  data.longitude = longitude;
-  data.latitude = latitude;
-  data.value = value;
-  data.category = category;
-  data.percentage = percentage;
-  data.location = location;
-  data.save(err => {
-    if (err) return res.json({success: false, error: err});
-    return res.json({ success: true });
-  });
-});
-
-router.get('/efmreadings', (req, res) => {
+router.get('/efmschema', (req, res) => {
   EFMSchema.find((err, dataObj) => {
     if (err) return res.json({ success: false, error:err});
     return res.json({ success: true, data: dataObj });
   });
 });
 
-router.post('/efmreadings', (req,res) => {
+router.post('/efmschema', (req,res) => {
    const data = EFMSchema();
    const { label,
    location,
@@ -153,31 +80,56 @@ router.post('/efmreadings', (req,res) => {
   data.CSIGMetaURL = CSIGMetaURL;
   data.field = field;
   data.readings = readings;
-  data.save(err => {
-    if (err) return res.json({success: false, error: err});
-    console.log(data);
-    return res.json({ success: true });
+  
+  var treestruct = TreeStruct();
+  treestruct.label = data.CSIGclass;
+  for (var i=0; i<data.field.length; i++){
+    var node = TreeNode();
+    node.label = data.field[i].label;
+    treestruct.children.push(node);
+  }
+
+  EFMSchema.exists(data, function(message,status){
+    if(status){
+	return res.json({ success:false, error:message });
+    } else{
+      data.save(err => {
+        if (err) return res.json({success: false, error: err});
+        TreeStruct.exists(data.CSIGclass, function(message, status){
+          if(!status){
+            treestruct.save(err => {
+      	      if (err) return res.json({success: false, error: err});
+            });
+	  }
+        });
+      });
+      return res.json({ success:true, token: data._id });
+    }
   });
 });
 
-router.get('/readings', (req, res) => {
+router.get('/efmreadings', (req, res) => {
   Readings.find((err, dataObj) => {
     if (err) return res.json({ success: false, error:err});
     return res.json({ success: true, data: dataObj });
   });
 });
 
-router.post('/readings', (req,res) => {
+router.post('/efmreadings', (req,res) => {
   const reading = Readings();
   const { label,
   location,
+  CSIGclass,
+  token,
   readings
   } = req.body;
   reading.label = label;
+  reading.CSIGclass = CSIGclass;
   reading.location = location;
+  reading.token = token;
   reading.readings = readings;
 
-  EFMSchema.updateOne({ "label" : reading.label},{$push: {readings: reading.readings}},  (err, dataObj) => {
+  EFMSchema.updateOne({ "_id" : reading.token},{$push: {readings: reading.readings}},  (err, dataObj) => {
 	if (err) return res.json({success: false, error: err});
   	
 	reading.save(err => {
@@ -185,9 +137,32 @@ router.post('/readings', (req,res) => {
     	return res.json({ success: true });
   	});
   });
-  
-
 });
+
+router.get('/gettreestruct', (req,res) => {
+  TreeStruct.find({}, {'_id':0,'__v':0}, function (err, dataObj) {
+    if (err) return res.json({ success: false, error: err});
+    return res.json({ success: true, data: dataObj });
+  })
+});
+
+router.get('/getlatestreadings', (req,res) => {
+  Readings.aggregate([ 
+    { $sort: { "updatedAt": -1 }}, 
+    { $group: {
+      _id : {
+	"CSIGclass": "$CSIGclass",
+	"location": "$location"
+      },
+      readings: {$first: "$readings"} 
+      }
+    }
+  ], function(err, dataObj){
+	if (err) return res.json({ success: false, error: err});	
+	return res.json({ success: true, data: dataObj});
+  });
+});
+
 
 // Use our router configuration when we call /api
 app.use('/api', router);

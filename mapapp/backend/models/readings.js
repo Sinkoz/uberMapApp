@@ -4,7 +4,9 @@ const Schema = mongoose.Schema;
 
 const Readings = new Schema({
   "label" : String,
-  "location" : { type: String, enum : ['sydney', 'toronto', 'singapore', 'japan'] },
+  "location" : { type: String, enum : ['Sydney', 'Toronto', 'Singapore', 'Japan'] },
+  "CSIGclass" : String,
+  "token" : String,
   "readings" : { type: Array, "default": [] }
 }, { timestamps: true});
 
