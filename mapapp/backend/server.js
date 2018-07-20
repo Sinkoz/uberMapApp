@@ -5,7 +5,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import logger from 'morgan';
 import mongoose from 'mongoose';
-import { getSecret } from './secrets';
+import { getSecret } from '../config';
 import EFMSchema from './models/efmschema.js';
 import Readings from './models/readings.js';
 import TreeStruct from './models/treestruct.js';
@@ -19,8 +19,8 @@ const router = express.Router();
 const API_PORT = process.env.API_PORT || 3001;
 
 
-//dbconfig - set your UrI in secrets.js
-mongoose.connect(getSecret('dbUri'));
+//dbconfig - set your UrI in ../config.js
+mongoose.connect(getSecret('devDbUri'));
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
@@ -33,7 +33,7 @@ app.use(logger('dev'));
 app.use(function (req, res, next) {
 
     // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3030');
+    res.setHeader('Access-Control-Allow-Origin', getSecret('devAppUri'));
 
     // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');

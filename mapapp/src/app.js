@@ -11,9 +11,12 @@ import {tooltipStyle} from './style';
 import 'whatwg-fetch';
 import DropdownTreeSelect from 'react-dropdown-tree-select';
 import {COLORS} from './colors';
+import { getSecret } from '../config';
 
 const MAPBOX_STYLE = 'mapbox://styles/mapbox/dark-v9';
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2lua296IiwiYSI6ImNqaTUyZWY3MTBjY3MzcW1rM2hqYjRkbHoifQ.DqK60GCeJJCrZg2s6t8FTw'  // eslint-disable-line
+
+const uri = getSecret('devServerUri');
 
 if (!MAPBOX_TOKEN) {
   alert('The mapbox token is not defined. Please export it in the terminal where you typed "npm start"')
@@ -52,9 +55,11 @@ export default class App extends Component {
       status: 'LOADING',
       treedata: [],
       readings: [],
-      filters: []
+      filters: [],
+      counter: 0
     };
     this.pollInterval = null;
+    this._getData();
     this._resize = this._resize.bind(this);
     this._getTreeStruct();
   }
@@ -69,7 +74,7 @@ export default class App extends Component {
   componentDidMount() {
     this._getTreeStruct();
     if (!this.pollInterval){
-	this.pollInterval = setInterval(this._getData.bind(this), 10000);
+	this.pollInterval = setInterval(this._getData.bind(this), 60000);
     }
     window.addEventListener('resize', this._resize);
     this._resize();
@@ -83,7 +88,6 @@ export default class App extends Component {
 
   _updateLayerSettings(settings) {
     this.setState({settings});
-    this._getData();
   }
 
   _onHover({x, y, object}) {
@@ -115,7 +119,7 @@ export default class App extends Component {
 		var childIndex = indices[1];
 		newData[index].children[childIndex].checked = !newData[index].children[childIndex].checked;
 	}
-	this._getData();
+	this._filterData();
   }
 
   _filterData(){
@@ -162,12 +166,17 @@ export default class App extends Component {
   }
 
   _getData(){
-    fetch('http://localhost:3001/api/getlatestreadings/')
+    fetch(uri + '/api/getlatestreadings/')
 	.then(data => data.json())
 	.then((res) => {
+		var counter = 0;
+		this.setState({ counter });
 		if(!res.success) this.setState({ error: res.error});
 		else {
 			var myObj = res.data;
+			console.log(myObj);
+			console.log(counter);
+/*
 			const readings = myObj.reduce((accu, curr) => {
 				var keys = Object.keys(curr.readings[0]);
 				for (var i=0; i<keys.length;++i){
@@ -188,8 +197,45 @@ export default class App extends Component {
 				status: 'READY'
 			});
 			this._filterData();
+*/
+			this._iterateReadings(myObj);
 		}
 	});
+  }
+
+  _iterateReadings(data){
+	var counter = this.state.counter;
+	var timer = setInterval(function(){
+		console.log("iterating");
+		const readings = data.reduce((accu,curr) =>{
+			var keys = Object.keys(curr.readings[counter]);
+			for (var i=0;i<keys.length;++i){
+				if (keys[i] != "ts"){
+					accu.push({
+						position: this._geocode(curr._id.location),
+						value: this._normalizer(keys[i],curr.readings[counter][keys[i]]),
+						class: curr._id.CSIGclass,
+						field: keys[i],	
+						color: []
+					});
+				}
+
+			};			
+			return accu;
+		},[]);
+		this.setState({
+			readings,
+			status: 'READY'
+		});
+		this._filterData();
+		counter++;
+		this.setState({ counter });
+		if(this.state.counter == data[0].readings.length){
+			counter = 0;
+			this.setState({ counter });
+			clearInterval(timer);
+		}
+	}.bind(this),5000);
   }
 
   _getTreeStruct() {
