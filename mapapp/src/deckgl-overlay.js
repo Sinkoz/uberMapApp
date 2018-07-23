@@ -40,11 +40,11 @@ export default class DeckGLOverlay extends Component {
         id: 'scatterplot',
         getPosition: d => d.position,
         getColor: d => d.color,
-        getRadius: d => d.value*100,
+        getRadius: d => d.radius*1000,
         opacity: 0.1,
         pickable: true,
         radiusMinPixels: 10,
-        radiusMaxPixels: 10000000,
+        radiusMaxPixels: 100,
         ...this.props
       }): null,
       this.props.showHexagon ? new HexagonLayer({

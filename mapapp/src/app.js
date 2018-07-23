@@ -127,7 +127,7 @@ export default class App extends Component {
     const filters = this.state.filters;
     var dict = this._filterMapper(filters, this.state.treedata);
     this.setState({ status: 'LOADED' });
-    const points = data.reduce((accu, curr) => {
+    const preProcPoints = data.reduce((accu, curr) => {
       for (var i=0; i<filters.length; i++){
 	if (filters[i]._depth == 0){
 	  if (curr.class == filters[i].value){
@@ -152,6 +152,18 @@ export default class App extends Component {
       return accu;
     }, []);
     
+    var array = [];
+    for (var i=0; i<preProcPoints.length; i++){
+	array.push(preProcPoints[i].value);
+    }
+    array = this._rescale(array);
+    var points = [];
+    for (var i=0; i<preProcPoints.length; i++){
+	var point = preProcPoints[i];
+	point.radius = array[i];
+	points.push(point);
+    }
+    console.log(points);
 
     this.setState({
 	points,
@@ -173,17 +185,16 @@ export default class App extends Component {
 		this.setState({ counter });
 		if(!res.success) this.setState({ error: res.error});
 		else {
-			var myObj = res.data;
-			console.log(myObj);
-			console.log(counter);
+			var resObj = res.data;
+			console.log(resObj);
 /*
-			const readings = myObj.reduce((accu, curr) => {
+			const readings = resObj.reduce((accu, curr) => {
 				var keys = Object.keys(curr.readings[0]);
 				for (var i=0; i<keys.length;++i){
 					if (keys[i] != "ts"){
 						accu.push({
 							position: this._geocode(curr._id.location),
-							value: this._normalizer(keys[i],curr.readings[0][keys[i]]),
+							value: keys[i],curr.readings[0][keys[i]],
 							class: curr._id.CSIGclass,
 							field: keys[i],
 							color: []
@@ -198,7 +209,7 @@ export default class App extends Component {
 			});
 			this._filterData();
 */
-			this._iterateReadings(myObj);
+			this._iterateReadings(resObj);
 		}
 	});
   }
@@ -206,17 +217,17 @@ export default class App extends Component {
   _iterateReadings(data){
 	var counter = this.state.counter;
 	var timer = setInterval(function(){
-		console.log("iterating");
 		const readings = data.reduce((accu,curr) =>{
 			var keys = Object.keys(curr.readings[counter]);
 			for (var i=0;i<keys.length;++i){
 				if (keys[i] != "ts"){
 					accu.push({
 						position: this._geocode(curr._id.location),
-						value: this._normalizer(keys[i],curr.readings[counter][keys[i]]),
+						value: curr.readings[counter][keys[i]],
 						class: curr._id.CSIGclass,
 						field: keys[i],	
-						color: []
+						color: [],
+						radius: 0,
 					});
 				}
 
@@ -288,6 +299,31 @@ export default class App extends Component {
 
 	}
   }
+
+  _rescale(array){
+	console.log(array);
+	var length = array.length;
+	var mediumIndex = Math.floor(length/2);
+	var middleElement = array[mediumIndex];
+	
+	for (var i=0; i<length; i++){
+		var element = array[i]
+		if (element > middleElement){
+			while(element > middleElement*10){
+				element /= 10;
+			}	
+		} else {
+			while(middleElement > element*10)
+				element *= 10;
+		}
+		console.log(element);
+		element = element *10;
+		element = element / middleElement;
+		array[i] = element;
+	}
+	return array;
+  }
+
 
   _filterMapper(filters, treedata){
     var mappedFilter = {};
