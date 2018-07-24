@@ -9,7 +9,7 @@ const EFMSchema = new Schema({
   "location" : { type: String, enum : ['Sydney', 'Toronto', 'Singapore', 'Japan'], default: 'Toronto'},
   "description" : String,
   "CSIGclass": String,
-  "CSIGMetalURL": String,
+  "CSIGMetaURL": String,
   "field" : { type: Array , "default" : [] },
   "readings" : { type: Array, "default" : [] }
 }, { timestamps: true });

@@ -205,6 +205,7 @@ export default class App extends Component {
 						field: keys[i],	
 						color: [],
 						radius: 0,
+						metaURL: curr.CSIGMetaURL
 					});
 				}
 

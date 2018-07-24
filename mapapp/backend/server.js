@@ -122,18 +122,26 @@ router.post('/efmreadings', (req,res) => {
   const { label,
   location,
   CSIGclass,
+  CSIGMetaURL,
   token,
   readings
   } = req.body;
   reading.label = label;
   reading.CSIGclass = CSIGclass;
+  reading.CSIGMetaURL = CSIGMetaURL;
   reading.location = location;
   reading.token = token;
   reading.readings = readings;
 
-  EFMSchema.updateOne({ "_id" : reading.token},{$push: {readings: reading.readings}},  (err, dataObj) => {
+  EFMSchema.findOneAndUpdate({ "_id" : reading.token},{$push: {readings: reading.readings}},  (err, dataObj) => {
 	if (err) return res.json({success: false, error: err});
   	
+	console.log(dataObj);
+	console.log(reading);
+	if(reading.CSIGMetaURL == "" || reading.CSIGMetaURL == null){
+		reading.CSIGMetaURL = dataObj.CSIGMetaURL;
+	}
+
 	reading.save(err => {
     	if (err) return res.json({success: false, error: err});
     	return res.json({ success: true, object: reading});
@@ -156,7 +164,8 @@ router.get('/getlatestreadings', (req,res) => {
 	"CSIGclass": "$CSIGclass",
 	"location": "$location"
       },
-      readings: {$first: "$readings"} 
+      readings: {$first: "$readings"},
+      CSIGMetaURL: {$first: "$CSIGMetaURL"}
       }
     }
   ], function(err, dataObj){
