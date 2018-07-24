@@ -6,7 +6,7 @@ const Schema = mongoose.Schema;
 // object that shows the shape of your database entries.
 const EFMSchema = new Schema({
   "label" : String,
-  "location" : { type: String, enum : ['sydney', 'Toronto', 'Singapore', 'Japan'], default: 'Toronto'},
+  "location" : { type: String, enum : ['Sydney', 'Toronto', 'Singapore', 'Japan'], default: 'Toronto'},
   "description" : String,
   "CSIGclass": String,
   "CSIGMetalURL": String,

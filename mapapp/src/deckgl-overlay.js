@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
 import DeckGL, {ScatterplotLayer,HexagonLayer} from 'deck.gl';
 
-const PICKUP_COLOR = [0, 128, 255];
-const DROPOFF_COLOR = [255, 0, 128];
 // in RGB
 const HEATMAP_COLORS = [
   [213, 62, 79],

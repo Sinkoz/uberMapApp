@@ -163,7 +163,6 @@ export default class App extends Component {
 	point.radius = array[i];
 	points.push(point);
     }
-    console.log(points);
 
     this.setState({
 	points,
@@ -186,29 +185,6 @@ export default class App extends Component {
 		if(!res.success) this.setState({ error: res.error});
 		else {
 			var resObj = res.data;
-			console.log(resObj);
-/*
-			const readings = resObj.reduce((accu, curr) => {
-				var keys = Object.keys(curr.readings[0]);
-				for (var i=0; i<keys.length;++i){
-					if (keys[i] != "ts"){
-						accu.push({
-							position: this._geocode(curr._id.location),
-							value: keys[i],curr.readings[0][keys[i]],
-							class: curr._id.CSIGclass,
-							field: keys[i],
-							color: []
-						});
-					}
-				};
-				return accu;
-			}, []);
-			this.setState({
-				readings,
-				status: 'READY'
-			});
-			this._filterData();
-*/
 			this._iterateReadings(resObj);
 		}
 	});
@@ -217,6 +193,7 @@ export default class App extends Component {
   _iterateReadings(data){
 	var counter = this.state.counter;
 	var timer = setInterval(function(){
+		console.log(data);
 		const readings = data.reduce((accu,curr) =>{
 			var keys = Object.keys(curr.readings[counter]);
 			for (var i=0;i<keys.length;++i){
@@ -301,7 +278,6 @@ export default class App extends Component {
   }
 
   _rescale(array){
-	console.log(array);
 	var length = array.length;
 	var mediumIndex = Math.floor(length/2);
 	var middleElement = array[mediumIndex];
@@ -316,7 +292,6 @@ export default class App extends Component {
 			while(middleElement > element*10)
 				element *= 10;
 		}
-		console.log(element);
 		element = element *10;
 		element = element / middleElement;
 		array[i] = element;
@@ -362,10 +337,6 @@ export default class App extends Component {
             <div>{JSON.stringify(this.state.hoveredObject)}</div>
           </div>}
 	<DropdownTreeSelect data={this.state.treedata} onChange={(currentNode,selectedNodes) => this._onChange(currentNode,selectedNodes)} onNodeToggle={(currentNode) => this._onNodeToggle(currentNode)}/>
-        <LayerControls
-          settings={this.state.settings}
-          propTypes={HEXAGON_CONTROLS}
-          onChange={settings => this._updateLayerSettings(settings)}/>
 	<MapGL
           {...this.state.viewport}
           mapStyle={MAPBOX_STYLE}
