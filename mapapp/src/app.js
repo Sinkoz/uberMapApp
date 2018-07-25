@@ -90,8 +90,26 @@ export default class App extends Component {
     this.setState({settings});
   }
 
-  _onHover({x, y, object}) {
-    this.setState({x, y, hoveredObject: object});
+  _onHover(datapoint) {
+	var point = {x : datapoint.x, y: datapoint.y, hoveredObject: null}
+	if (datapoint.object == null){
+		this.setState(point);
+	} else {
+		var object = datapoint.object
+		point.hoveredObject = object.location + " has a reading of " + object.value + ".";
+		if (point.metaURL != ''){
+			point.hoveredObject += " For more details go to '" + object.metaURL + "' or click on the datapoint.";
+		}
+		this.setState(point);
+	}
+  }
+
+  _onClick(datapoint) {
+	var URL = datapoint.object.metaURL;
+	if(URL != ''){
+		var mywindow = window.open(URL,"mywindow","location=1,status=1,scrollbars=1, width=500,height=500");
+		mywindow.moveTo(0,0);
+	}
   }
  
   _resize() {
@@ -203,6 +221,7 @@ export default class App extends Component {
 						value: curr.readings[counter][keys[i]],
 						class: curr._id.CSIGclass,
 						field: keys[i],	
+						location: curr._id.location,
 						color: [],
 						radius: 0,
 						metaURL: curr.CSIGMetaURL
@@ -348,8 +367,9 @@ export default class App extends Component {
             viewport={this.state.viewport}
 	    {...this.state.settings}
             data={this.state.points} 
-	    onHover={hover => this._onHover(hover)}
-   	    {...this.state.settings} />
+	    onHover={datapoint => this._onHover(datapoint)}
+            onClick={datapoint => this._onClick(datapoint)}
+   	  />
         </MapGL>
       </div>
     );
