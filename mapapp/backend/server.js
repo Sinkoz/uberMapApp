@@ -20,7 +20,7 @@ const API_PORT = process.env.API_PORT || 3001;
 
 
 //dbconfig - set your UrI in ../config.js
-mongoose.connect(getSecret('devDbUri'));
+mongoose.connect(getSecret('dbUri'));
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 

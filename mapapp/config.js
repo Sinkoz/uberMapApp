@@ -5,8 +5,7 @@ const devUri = 'http://localhost';
 const prodUri = 'http://172.20.20.189';
 
 const secrets = {
-  devDbUri: 'mongodb://localhost/centralized',
-  prodDbUri: 'mongodb://172.20.20.189/centralized',
+  dbUri: 'mongodb://localhost/centralized',
   devAppUri: devUri + ':' + appPort,
   prodAppUri: prodUri + ':' + appPort,
   devServerUri: devUri + ':' + serverPort,
