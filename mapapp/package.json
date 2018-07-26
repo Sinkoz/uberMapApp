@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "start-local": "webpack-dev-server --env.local --progress --hot --port 3030 --open",
-    "start:client": "webpack-dev-server --progress --hot --port 3030 --open",
+    "start:client": "webpack-dev-server --progress --hot --host 0.0.0.0 --port 3030 --open",
     "start:server": "cd backend && nodemon server.js --exec babel-node --presets es2015,stage-0",
     "start:dev": "concurrently \"yarn start:server\" \"yarn start:client\"",
     "build": "NODE_ENV=production webpack --env.prod=true"
