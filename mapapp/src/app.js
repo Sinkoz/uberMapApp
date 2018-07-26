@@ -211,7 +211,6 @@ export default class App extends Component {
   _iterateReadings(data){
 	var counter = this.state.counter;
 	var timer = setInterval(function(){
-		console.log(data);
 		const readings = data.reduce((accu,curr) =>{
 			var keys = Object.keys(curr.readings[counter]);
 			for (var i=0;i<keys.length;++i){

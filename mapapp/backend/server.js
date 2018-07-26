@@ -136,8 +136,6 @@ router.post('/efmreadings', (req,res) => {
   EFMSchema.findOneAndUpdate({ "_id" : reading.token},{$push: {readings: reading.readings}},  (err, dataObj) => {
 	if (err) return res.json({success: false, error: err});
   	
-	console.log(dataObj);
-	console.log(reading);
 	if(reading.CSIGMetaURL == "" || reading.CSIGMetaURL == null){
 		reading.CSIGMetaURL = dataObj.CSIGMetaURL;
 	}
