@@ -246,7 +246,7 @@ export default class App extends Component {
   }
 
   _getTreeStruct() {
-    fetch('http://localhost:3001/api/gettreestruct')
+    fetch(uri + '/api/gettreestruct')
 	.then(data => data.json())
 	.then((res) =>{
 		if(!res.success) this.setState({ error: res.error});
