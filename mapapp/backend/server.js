@@ -110,6 +110,17 @@ router.post('/efmschema', (req,res) => {
   });
 });
 
+router.post('/deleteschema', (req,res) => {
+	const { token } = req.body
+	EFMSchema.deleteOne({ "_id" : token }, (err) => {
+		if (err) return res.json({success:false, error: err});
+		Readings.deleteMany({ "token": token}, (err2) => {
+			if (err2) return res.json({success:false, error:err2});
+			return res.json({success:true, message: "Schema with token " + token +" successfully deleted"});
+		})
+	});
+});
+
 router.get('/efmreadings', (req, res) => {
   Readings.find((err, dataObj) => {
     if (err) return res.json({ success: false, error:err});
@@ -131,6 +142,10 @@ router.post('/efmreadings', (req,res) => {
   reading.CSIGMetaURL = CSIGMetaURL;
   reading.location = location;
   reading.token = token;
+  if(readings.length != 12){
+	return res.json({success: false, error: '200. Expected length of readings is wrong'});
+  } else {
+  
   reading.readings = readings;
 
   EFMSchema.findOneAndUpdate({ "_id" : reading.token},{$push: {readings: reading.readings}},  (err, dataObj) => {
@@ -145,6 +160,7 @@ router.post('/efmreadings', (req,res) => {
     	return res.json({ success: true, object: reading});
   	});
   });
+  }
 });
 
 router.get('/gettreestruct', (req,res) => {
