@@ -149,7 +149,7 @@ router.post('/efmreadings', (req,res) => {
   reading.readings = readings;
 
   EFMSchema.findOneAndUpdate({ "_id" : reading.token},{$push: {readings: reading.readings}},  (err, dataObj) => {
-	if (err == null || dataObj == null) return res.json({success:false, error: "Error 404. Schema with token " + reading.token + " not found."});
+	if (dataObj == null) return res.json({success:false, error: "Error 404. Schema with token " + reading.token + " not found."});
 	if (err) return res.json({success: false, error: err});
   	
 	if(reading.CSIGMetaURL == "" || reading.CSIGMetaURL == null){
