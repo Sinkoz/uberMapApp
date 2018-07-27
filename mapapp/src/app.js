@@ -96,8 +96,8 @@ export default class App extends Component {
 		this.setState(point);
 	} else {
 		var object = datapoint.object
-		point.hoveredObject = object.location + " has a reading of " + object.value + ".";
-		if (point.metaURL != ''){
+		point.hoveredObject = object.location + " has a reading of " + object.value + " for '" + object.field +"'.";
+		if (object.metaURL != ''){
 			point.hoveredObject += " For more details go to '" + object.metaURL + "' or click on the datapoint.";
 		}
 		this.setState(point);
